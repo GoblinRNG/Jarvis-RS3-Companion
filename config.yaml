@@ -1,0 +1,45 @@
+player:
+  rsn: "YourRSN"
+  honorific: "sir"            # sir | madam
+  ironman: false
+  hcim: false
+  combat_style: "necromancy"  # melee | range | magic | necromancy
+  playtime_min_per_day: 90
+  afk_preference: "semi"      # afk | semi | intensive | all
+
+voice:
+  wake_word: "jarvis"
+  voice_id: ""                # ElevenLabs cloned voice id (populate after voice cloning)
+  stability: 0.55
+  similarity: 0.85
+  style: 0.30
+  mute_hotkey: "ctrl+alt+m"
+  hud_hotkey: "ctrl+alt+j"
+  tts_model: "eleven_flash_v2"
+  stt_model: "medium.en"      # faster-whisper model size
+  stt_device: "auto"          # auto | cpu | cuda
+  stt_compute_type: "int8"    # int8 | float16 | float32
+  vad_threshold: 0.5          # webrtcvad aggressiveness 0-3
+
+llm:
+  provider: "anthropic"
+  model: "claude-sonnet-4-6"
+  max_tokens: 400
+  temperature: 0.7
+
+data:
+  ge_poll_seconds: 300
+  hiscores_poll_seconds: 60
+  wiki_refresh_cron: "0 4 * * *"
+  db_path: "~/.jarvis_rs3/rs3.db"
+
+hud:
+  enabled: true
+  position: "top_right"
+  fade_seconds: 20
+  always_on_top: true
+
+api_keys:
+  anthropic: ""               # or set ANTHROPIC_API_KEY env var
+  elevenlabs: ""              # or set ELEVENLABS_API_KEY env var
+  porcupine: ""               # or set PORCUPINE_ACCESS_KEY env var
