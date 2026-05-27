@@ -1,0 +1,36 @@
+# RS3 JARVIS Phase 1 — pinned requirements
+# Install with:  pip install -r requirements-rs3.txt
+
+# LLM
+anthropic>=0.30
+
+# TTS
+elevenlabs>=1.9.0
+
+# STT
+faster-whisper>=1.0.0
+
+# Wake word (jarvis is a built-in keyword — no custom model needed)
+pvporcupine>=3.0.0
+
+# Audio I/O
+sounddevice>=0.4.6
+numpy>=1.24
+
+# Voice activity detection
+webrtcvad>=2.0.10
+
+# MP3 decode for cached lines
+pydub>=0.25.1
+
+# GE / Hiscores HTTP
+httpx>=0.27
+
+# Config
+pyyaml>=6.0
+
+# Reset scheduler (optional but recommended)
+apscheduler>=3.10.4
+
+# .env loading
+python-dotenv>=1.0.0

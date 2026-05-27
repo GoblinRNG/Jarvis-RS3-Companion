@@ -19,6 +19,13 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
+# Load .env automatically when the voice loop is imported
+try:
+    from dotenv import load_dotenv  # type: ignore[import]
+    load_dotenv(Path(__file__).parent.parent.parent.parent.parent / ".env", override=False)
+except ImportError:
+    pass  # python-dotenv optional; env vars can be set manually
+
 logger = logging.getLogger(__name__)
 
 # ── Constants ────────────────────────────────────────────────────────────────
@@ -201,6 +208,7 @@ class VoiceLoop:
         self._muted_until: float = 0.0
         self._death_timestamps: list = []
         self._system_prompt: Optional[str] = None
+        self._whisper_model = None  # loaded once on first transcription
 
     # ── TTS / audio ──────────────────────────────────────────────────────────
 
@@ -234,20 +242,27 @@ class VoiceLoop:
 
     # ── STT ──────────────────────────────────────────────────────────────────
 
-    async def _transcribe(self, wav_bytes: bytes) -> str:
-        """Transcribe audio bytes using faster-whisper."""
+    def _ensure_whisper(self):
+        """Lazily load the Whisper model once and cache it on the instance."""
+        if self._whisper_model is not None:
+            return self._whisper_model
         try:
             from faster_whisper import WhisperModel  # type: ignore[import]
         except ImportError as e:
             raise ImportError(
                 "faster-whisper not installed. Install with: pip install faster-whisper"
             ) from e
-
         vc = self._cfg.voice
-        model = WhisperModel(
+        logger.info("Loading Whisper model %r (device=%s)…", vc.stt_model, vc.stt_device)
+        self._whisper_model = WhisperModel(
             vc.stt_model, device=vc.stt_device, compute_type=vc.stt_compute_type
         )
-        # Write to temp file — faster-whisper requires a file path
+        logger.info("Whisper model loaded.")
+        return self._whisper_model
+
+    async def _transcribe(self, wav_bytes: bytes) -> str:
+        """Transcribe audio bytes using faster-whisper (model cached after first load)."""
+        model = self._ensure_whisper()
         import tempfile
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as tmp:
             tmp.write(wav_bytes)
@@ -259,9 +274,15 @@ class VoiceLoop:
 
     def _load_system_prompt(self) -> str:
         if self._system_prompt is None:
-            prompt_path = Path("jarvis_system_prompt.txt")
-            if prompt_path.exists():
-                self._system_prompt = prompt_path.read_text()
+            # Look for the file relative to the project root (two dirs above this file)
+            candidates = [
+                Path("jarvis_system_prompt.txt"),
+                Path(__file__).parent.parent.parent.parent.parent / "jarvis_system_prompt.txt",
+            ]
+            for p in candidates:
+                if p.exists():
+                    self._system_prompt = p.read_text()
+                    break
             else:
                 from openjarvis.rs3.system_prompt import JARVIS_SYSTEM_PROMPT
                 self._system_prompt = JARVIS_SYSTEM_PROMPT

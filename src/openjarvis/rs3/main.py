@@ -20,6 +20,25 @@ import logging
 import sys
 from pathlib import Path
 
+# Auto-load .env if python-dotenv is available
+try:
+    from dotenv import load_dotenv  # type: ignore[import]
+
+    def _find_env() -> Path | None:
+        """Walk upward from the current file looking for a .env."""
+        here = Path(__file__).resolve()
+        for parent in [here, *here.parents]:
+            candidate = parent / ".env"
+            if candidate.exists():
+                return candidate
+        return None
+
+    _env_file = _find_env()
+    if _env_file:
+        load_dotenv(_env_file, override=False)
+except ImportError:
+    pass
+
 logger = logging.getLogger(__name__)
 
 
